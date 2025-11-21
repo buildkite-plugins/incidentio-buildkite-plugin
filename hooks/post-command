@@ -1,0 +1,110 @@
+#!/bin/bash
+
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=lib/shared.bash
+# . "$DIR/../lib/shared.bash"
+
+# shellcheck source=lib/plugin.bash
+. "$DIR/../lib/plugin.bash"
+
+main() {
+  # Set up error reporting and debug mode
+  setup_error_trap
+  enable_debug_if_requested
+  
+  echo "--- :hammer: Running plugin"
+  log_info "Running plugin..."
+
+  # Get exit status (default to 0 if not set)
+  EXIT_STATUS="${BUILDKITE_COMMAND_EXIT_STATUS:-0}"
+
+  # Skip graceful terminations
+  if [[ "$EXIT_STATUS" -eq 143 || "$EXIT_STATUS" -eq 255 ]]; then
+    log_info "Job gracefully terminated (exit $EXIT_STATUS) - no incident"
+    exit 0
+  fi
+
+  # Skip if job succeeded
+  if [[ "$EXIT_STATUS" -eq 0 ]]; then
+    log_info "Job completed successfully - no incident"
+    exit 0
+  fi
+
+  # Job failed - get configuration and create incident
+  log_info "Job completed with exit status: $EXIT_STATUS"
+  
+  # Plugin configuration
+  SEVERITY_NAME=$(plugin_read_config SEVERITY_NAME "")
+  INCIDENT_NAME=$(plugin_read_config INCIDENT_NAME "")
+  INCIDENT_SUMMARY=$(plugin_read_config INCIDENT_SUMMARY "")
+  INCIDENT_CHANNEL_MODE=$(plugin_read_config INCIDENT_CHANNEL_MODE "public")
+  
+  validate_required_config "INCIDENTIO_API_KEY" "${INCIDENTIO_API_KEY:-}"
+  validate_required_config "SEVERITY_NAME" "${SEVERITY_NAME}"
+
+  # Fetch severity ID from severity name
+  log_debug "Fetching severity ID for: ${SEVERITY_NAME}"
+  severities_response=$(curl -s -X GET \
+    "https://api.incident.io/v1/severities" \
+    -H "Authorization: Bearer ${INCIDENTIO_API_KEY}")
+  
+  SEVERITY_ID=$(echo "$severities_response" | jq -r --arg name "$SEVERITY_NAME" '.severities[] | select(.name | ascii_downcase == ($name | ascii_downcase)) | .id')
+  
+  if [[ -z "$SEVERITY_ID" ]]; then
+    log_error "Severity '${SEVERITY_NAME}' not found. Available severities:"
+    echo "$severities_response" | jq -r '.severities[] | "  - \(.name)"'
+    exit 1
+  fi
+  
+  log_debug "Using severity ID: ${SEVERITY_ID}"
+
+  log_info "Job failed with exit code $EXIT_STATUS - creating incident"
+  # Create incident
+  response=$(curl -s -w "\n%{http_code}" -X POST \
+    https://api.incident.io/v2/incidents \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${INCIDENTIO_API_KEY}" \
+    -d "{
+      \"idempotency_key\": \"${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_ID}-${BUILDKITE_JOB_ID}\",
+      \"mode\": \"test\",
+      \"name\": \"${INCIDENT_NAME}\",
+      \"severity_id\": \"${SEVERITY_ID}\",
+      \"summary\": \"${INCIDENT_SUMMARY}\",
+      \"visibility\": \"${INCIDENT_CHANNEL_MODE}\"
+    }")
+  http_code=$(echo "$response" | tail -n1)
+  body=$(echo "$response" | sed '$d')
+
+  if [[ "$http_code" -ge 200 && "$http_code" -lt 300 ]]; then
+    incident_url=$(echo "$body" | jq -r '.incident.permalink')
+    incident_name=$(echo "$body" | jq -r '.incident.name')
+    severity_name=$(echo "$body" | jq -r '.incident.severity.name')
+    echo "Incident created: $incident_name ($incident_url)"
+    
+    # Create Buildkite annotation with link
+    buildkite-agent annotate --style "error" <<EOF
+🚨 Incident Created
+
+Incident: [$incident_name]($incident_url)
+
+Severity: $severity_name
+
+Build Context:
+- Pipeline: $BUILDKITE_PIPELINE_SLUG
+- Build: #$BUILDKITE_BUILD_NUMBER
+- Job: $BUILDKITE_LABEL
+- Exit Status: $EXIT_STATUS
+EOF
+  else
+    error_msg=$(echo "$body" | jq -r '.errors[0].message // .message // "Unknown error"')
+    echo "Failed to create incident (HTTP $http_code): $error_msg"
+    exit 1
+  fi
+
+  log_success "Plugin executed successfully"
+}
+
+main "$@"
