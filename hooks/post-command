@@ -69,7 +69,6 @@ main() {
     -H "Authorization: Bearer ${INCIDENTIO_API_KEY}" \
     -d "{
       \"idempotency_key\": \"${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_ID}-${BUILDKITE_JOB_ID}\",
-      \"mode\": \"test\",
       \"name\": \"${INCIDENT_NAME}\",
       \"severity_id\": \"${SEVERITY_ID}\",
       \"summary\": \"${INCIDENT_SUMMARY}\",

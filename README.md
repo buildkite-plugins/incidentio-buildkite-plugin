@@ -1,15 +1,14 @@
 # Incident IncidentIO Buildkite Plugin [![Build status](https://badge.buildkite.com/d673030645c7f3e7e397affddd97cfe9f93a40547ed17b6dc5.svg)](https://buildkite.com/buildkite/plugins-template)
 
-Automatically create IncidentIO incidents when Buildkite builds or jobs fail.
+Automatically create Incident.io incidents when Buildkite jobs fail.
 
 ## Features
 
-- 🚨 **Automatic incident creation** when builds or jobs fail
-- 🎯 **Flexible failure detection** - check build status or job status
-- 📝 **Rich incident details** - includes pipeline, branch, build URL, job info, and timestamps
+- 🚨 **Automatic incident creation** when jobs fail
+- 📝 **Customizable incident details** - include custom details to your incident summary
 - 🔗 **Buildkite annotations** - creates annotations with direct links to Incident.io incidents
-- 🔑 **Secure credential handling** - uses environment variables for integration keys
-- ⚙️ **Customizable severity levels** - critical, error, warning, or info
+- 🔑 **Secure credential handling** - uses environment variables for api keys
+- ⚙️ **Customizable severity levels** - choose whichever severity have been defined in your Incident.io account
 
 ## Required Configuration
 
