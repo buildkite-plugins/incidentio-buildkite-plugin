@@ -7,7 +7,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/shared.bash"
 
 # TODO: Update this to match your plugin name (uppercase, underscores)
 # Example: "DOCKER_PUSH" for docker-push plugin
-PLUGIN_PREFIX="YOUR_PLUGIN_NAME"
+PLUGIN_PREFIX="INCIDENT_INCIDENTIO"
 
 # Usage: prefix_read_list "BUILDKITE_PLUGIN_MYPLUGIN_TAGS"
 # Handles both single values and arrays from plugin configuration
