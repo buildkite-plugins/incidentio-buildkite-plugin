@@ -14,35 +14,22 @@ Automatically create Incident.io incidents when Buildkite jobs fail.
 
 ### `INCIDENTIO_API_KEY` (string)
 
-The Incident.io API key for your Incident.io account. This is a 68-character hex string (e.g., `inc_0x36x3480x8t0t064t9dt89becex0u8x41x29x8b3c2349295413xe6a3x7fxf91`) that allows you to utilise [Incident.io's API](https://api-docs.incident.io/). 
+The Incident.io API key for your organization to utilise [Incident.io's API](https://api-docs.incident.io/). 
 
-If you need to create one, follow Incident.io's guide to [create your first incident using API](https://help.incident.io/articles/4081604110-creating-your-first-incident-using-the-api). Use your preferred secret management tool to store the key securely.
+If you need to create one, follow Incident.io's guide to [create your first incident using API](https://help.incident.io/articles/4081604110-creating-your-first-incident-using-the-api). Use your preferred [secret management method](https://buildkite.com/docs/pipelines/security/secrets/managing#using-a-secrets-storage-service) to store the key securely.
 
 ```yaml
+secrets:
+  - INCIDENTIO_API_KEY # Retrieve Buildkite Secrets created using Buildkite Interface
+
 steps:
-  # Fetch secrets once for entire pipeline
+  # OR use Buildkite Secrets plugin to retrieve your key
   - label: "🔐 Fetch Incident.io Credentials"
     key: "fetch-pagerduty-secrets"
     plugins:
-      # Choose your secret management solution:
-      - secrets#v1.0.0:                    # Buildkite Secrets
+      - secrets#v1.0.2:
           env:
             INCIDENTIO_API_KEY: incidentio-api-key
-      # OR
-      - vault-secrets#v2.2.1:              # HashiCorp Vault
-          server: ${VAULT_ADDR}
-          secrets:
-            - path: secret/incidentio/api-key
-              field: INCIDENTIO_API_KEY
-      # OR  
-      - aws-sm#v1.0.0:                     # AWS Secrets Manager
-          secrets:
-            - name: INCIDENTIO_API_KEY
-              key: incidentio/api-key
-      # OR
-      - aws-ssm#v1.0.0:                    # AWS SSM Parameter Store
-          parameters:
-            INCIDENTIO_API_KEY: /incidentio/api-key
     command: "./run-tests.sh"
         
 ```
@@ -55,7 +42,7 @@ Your Incident.io severity name. Possible severity names in your Incident.io orga
 
 ### `incident-name` (string)
 
-A brief explanation of the incident. If not provided, a default incident name will be generated.
+A brief explanation of the incident. If not provided, Incident.io will auto generate a random name for your incident.
 
 ### `incident-summary` (string)
 
@@ -90,10 +77,6 @@ steps:
 2. **Failure Detection**: Checks the current command's exit status to determine if there's a failure
 3. **Incident Creation**: If a failure is detected, send a POST request to Incident.io's Create Incidents v2 API
 4. **Annotation**: Creates a Buildkite annotation with incident details and a direct link to the Incident.io incident
-
-### Important: Command Requirement
-
-**The plugin requires a `command` in your pipeline step**. This is because the plugin monitors the command's exit status to detect failures.
 
 ## Requirements
 

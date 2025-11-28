@@ -4,10 +4,6 @@ set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=lib/shared.bash
-# . "$DIR/../lib/shared.bash"
-
-# shellcheck source=lib/plugin.bash
 . "$DIR/../lib/plugin.bash"
 
 main() {
@@ -15,26 +11,25 @@ main() {
   setup_error_trap
   enable_debug_if_requested
   
-  echo "--- :hammer: Running plugin"
-  log_info "Running plugin..."
+  echo "--- :hammer: Running Incident.io plugin"
 
   # Get exit status (default to 0 if not set)
   EXIT_STATUS="${BUILDKITE_COMMAND_EXIT_STATUS:-0}"
 
   # Skip graceful terminations
   if [[ "$EXIT_STATUS" -eq 143 || "$EXIT_STATUS" -eq 255 ]]; then
-    log_info "Job gracefully terminated (exit $EXIT_STATUS) - no incident"
+    log_debug "Job gracefully terminated (exit $EXIT_STATUS) - no incident"
     exit 0
   fi
 
   # Skip if job succeeded
   if [[ "$EXIT_STATUS" -eq 0 ]]; then
-    log_info "Job completed successfully - no incident"
+    log_debug "Job completed successfully - no incident"
     exit 0
   fi
 
   # Job failed - get configuration and create incident
-  log_info "Job completed with exit status: $EXIT_STATUS"
+  log_info "Job failed with exit code $EXIT_STATUS - creating incident"
   
   # Plugin configuration
   SEVERITY_NAME=$(plugin_read_config SEVERITY_NAME "")
@@ -61,9 +56,8 @@ main() {
   
   log_debug "Using severity ID: ${SEVERITY_ID}"
 
-  log_info "Job failed with exit code $EXIT_STATUS - creating incident"
   # Create incident
-  response=$(curl -s -w "\n%{http_code}" -X POST \
+  response=$(curl -sL -w "\n%{http_code}" -X POST \
     https://api.incident.io/v2/incidents \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${INCIDENTIO_API_KEY}" \
@@ -77,11 +71,11 @@ main() {
   http_code=$(echo "$response" | tail -n1)
   body=$(echo "$response" | sed '$d')
 
-  if [[ "$http_code" -ge 200 && "$http_code" -lt 300 ]]; then
+  if [[ "$http_code" -ge 200 && "$http_code" -lt 400 ]]; then
     incident_url=$(echo "$body" | jq -r '.incident.permalink')
     incident_name=$(echo "$body" | jq -r '.incident.name')
     severity_name=$(echo "$body" | jq -r '.incident.severity.name')
-    echo "Incident created: $incident_name ($incident_url)"
+    log_info "Incident created: $incident_name ($incident_url)"
     
     # Create Buildkite annotation with link
     buildkite-agent annotate --style "error" <<EOF
@@ -99,7 +93,7 @@ Build Context:
 EOF
   else
     error_msg=$(echo "$body" | jq -r '.errors[0].message // .message // "Unknown error"')
-    echo "Failed to create incident (HTTP $http_code): $error_msg"
+    log_error "Failed to create incident (HTTP $http_code): $error_msg"
     exit 1
   fi
 
