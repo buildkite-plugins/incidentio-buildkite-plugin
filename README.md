@@ -25,7 +25,7 @@ secrets:
 steps:
   # OR use Buildkite Secrets plugin to retrieve your key
   - label: "🔐 Fetch Incident.io Credentials"
-    key: "fetch-pagerduty-secrets"
+    key: "fetch-incidentio-secrets"
     plugins:
       - secrets#v1.0.2:
           env:
@@ -84,7 +84,7 @@ steps:
 - `curl` (for API calls)
 - `jq` (for JSON parsing)
 - Incident.io API key
-- Buildkite agent with access to make HTTPS requests to `events.pagerduty.com`
+- Buildkite agent with access to make HTTPS requests to `api.incident.io`
 
 ## Compatibility
 
