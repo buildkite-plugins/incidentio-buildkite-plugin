@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
+# shellcheck source=lib/plugin.bash
 . "$DIR/../lib/plugin.bash"
 
 main() {
@@ -32,7 +33,7 @@ main() {
   log_info "Job failed with exit code $EXIT_STATUS - creating incident"
   
   # Plugin configuration
-  SEVERITY_NAME=$(plugin_read_config SEVERITY_NAME "")
+  SEVERITY_NAME=$(plugin_read_config SEVERITY_NAME)
   INCIDENT_NAME=$(plugin_read_config INCIDENT_NAME "")
   INCIDENT_SUMMARY=$(plugin_read_config INCIDENT_SUMMARY "")
   INCIDENT_CHANNEL_MODE=$(plugin_read_config INCIDENT_CHANNEL_MODE "public")
@@ -42,7 +43,7 @@ main() {
 
   # Fetch severity ID from severity name
   log_debug "Fetching severity ID for: ${SEVERITY_NAME}"
-  severities_response=$(curl -s -X GET \
+  severities_response=$(curl -sL -X GET \
     "https://api.incident.io/v1/severities" \
     -H "Authorization: Bearer ${INCIDENTIO_API_KEY}")
   
@@ -89,7 +90,7 @@ Build Context:
 - Pipeline: $BUILDKITE_PIPELINE_SLUG
 - Build: #$BUILDKITE_BUILD_NUMBER
 - Job: $BUILDKITE_LABEL
-- Exit Status: $EXIT_STATUS
+- Job Exit Status: $EXIT_STATUS
 EOF
   else
     error_msg=$(echo "$body" | jq -r '.errors[0].message // .message // "Unknown error"')
