@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+# shellcheck disable=SC2030,SC2031
+
 load "${BATS_PLUGIN_PATH}/load.bash"
 
 setup() {
