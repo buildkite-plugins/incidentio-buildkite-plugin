@@ -12,7 +12,8 @@ setup() {
   export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_SEVERITY_NAME="SEV-5"
 
   # Create a temporary directory for our mocks
-  export MOCK_DIR="$(mktemp -d)"
+  MOCK_DIR="$(mktemp -d)"
+  export MOCK_DIR
   export PATH="${MOCK_DIR}:$PATH"
 
   # Mock buildkite-agent (default: echo stdin to stdout)
