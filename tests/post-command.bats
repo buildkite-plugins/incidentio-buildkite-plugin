@@ -104,7 +104,7 @@ teardown() {
   run "$PWD/hooks/post-command"
 
   assert_failure
-  assert_output --partial "SEVERITY_NAME is required but not provided"
+  assert_output --partial "severity-name is required but not provided"
 }
 
 @test "Fails when severity name not found" {
