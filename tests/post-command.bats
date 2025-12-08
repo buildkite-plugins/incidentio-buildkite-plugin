@@ -11,7 +11,7 @@ setup() {
   export BUILDKITE_BUILD_ID="test-build-id"
   export BUILDKITE_JOB_ID="test-job-id"
   export INCIDENTIO_API_KEY="test-key"
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_SEVERITY_NAME="SEV-5"
+  export BUILDKITE_PLUGIN_INCIDENTIO_SEVERITY_NAME="SEV-5"
 
   # Create a temporary directory for our mocks
   MOCK_DIR="$(mktemp -d)"
@@ -79,7 +79,7 @@ teardown() {
 
 @test "Creates incident log on job failure (exit 1)" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Test"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Test"
 
   run "$PWD/hooks/post-command"
 
@@ -99,7 +99,7 @@ teardown() {
 @test "Fails when severity name is missing" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
   export BUILDKITE_PLUGIN_DEBUG=false
-  unset BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_SEVERITY_NAME
+  unset BUILDKITE_PLUGIN_INCIDENTIO_SEVERITY_NAME
 
   run "$PWD/hooks/post-command"
 
@@ -109,7 +109,7 @@ teardown() {
 
 @test "Fails when severity name not found" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_SEVERITY_NAME="SEV-INVALID"
+  export BUILDKITE_PLUGIN_INCIDENTIO_SEVERITY_NAME="SEV-INVALID"
 
   run "$PWD/hooks/post-command"
 
@@ -119,8 +119,8 @@ teardown() {
 
 @test "Matches severity name case-insensitively" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_SEVERITY_NAME="sev-5"
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Test"
+  export BUILDKITE_PLUGIN_INCIDENTIO_SEVERITY_NAME="sev-5"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Test"
   export BUILDKITE_PLUGIN_DEBUG=true
 
   run "$PWD/hooks/post-command"
@@ -131,7 +131,7 @@ teardown() {
 
 @test "Uses default public visibility when not specified" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Test"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Test"
 
   run "$PWD/hooks/post-command"
 
@@ -141,8 +141,8 @@ teardown() {
 
 @test "Uses custom incident name and summary" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Custom Incident Name"
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_SUMMARY="Custom summary description"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Custom Incident Name"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_SUMMARY="Custom summary description"
 
   # Override curl mock for this specific test to return custom name
   cat << 'EOF' > "${MOCK_DIR}/curl"
@@ -169,8 +169,8 @@ EOF
 
 @test "Uses private visibility when specified" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Test"
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_CHANNEL_MODE="private"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Test"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_CHANNEL_MODE="private"
 
   run "$PWD/hooks/post-command"
 
@@ -180,7 +180,7 @@ EOF
 
 @test "Fails when incident creation returns non-2xx status" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Test"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Test"
 
   # Override curl mock to return failure
   cat << 'EOF' > "${MOCK_DIR}/curl"
@@ -207,9 +207,9 @@ EOF
 
 @test "Creates annotation with incident details" {
   export BUILDKITE_COMMAND_EXIT_STATUS=1
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_SEVERITY_NAME="SEV-5"
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_NAME="Build Failure"
-  export BUILDKITE_PLUGIN_INCIDENT_INCIDENTIO_INCIDENT_SUMMARY="Tests failed"
+  export BUILDKITE_PLUGIN_INCIDENTIO_SEVERITY_NAME="SEV-5"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_NAME="Build Failure"
+  export BUILDKITE_PLUGIN_INCIDENTIO_INCIDENT_SUMMARY="Tests failed"
 
   # Override curl mock to return specific details matching assertions
   cat << 'EOF' > "${MOCK_DIR}/curl"

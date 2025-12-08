@@ -1,4 +1,4 @@
-# Incident IncidentIO Buildkite Plugin [![Build status](https://badge.buildkite.com/d673030645c7f3e7e397affddd97cfe9f93a40547ed17b6dc5.svg)](https://buildkite.com/buildkite/plugins-template)
+# Incident.io Buildkite Plugin [![Build status](https://badge.buildkite.com/d673030645c7f3e7e397affddd97cfe9f93a40547ed17b6dc5.svg)](https://buildkite.com/buildkite/plugins-template)
 
 Automatically create Incident.io incidents when Buildkite jobs fail.
 
@@ -65,7 +65,7 @@ steps:
       - secrets#v1.0.0:
           env:
             INCIDENTIO_API_KEY: incidentio-api-key
-      - incident-incidentio#v1.0.0:
+      - incidentio#v1.0.0:
           severity-name: "SEV-1"
           incident-name: "Test Incident"
           incident-summary: "CI tests have failed"
