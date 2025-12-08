@@ -39,7 +39,7 @@ main() {
   INCIDENT_CHANNEL_MODE=$(plugin_read_config INCIDENT_CHANNEL_MODE "public")
   
   validate_required_config "INCIDENTIO_API_KEY" "${INCIDENTIO_API_KEY:-}"
-  validate_required_config "SEVERITY_NAME" "${SEVERITY_NAME}"
+  validate_required_config "severity-name" "${SEVERITY_NAME}"
 
   # Fetch severity ID from severity name
   log_debug "Fetching severity ID for: ${SEVERITY_NAME}"
