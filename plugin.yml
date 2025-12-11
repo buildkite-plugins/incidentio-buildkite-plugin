@@ -1,5 +1,5 @@
 name: Incident.io
-description: Create Incident.io incidents when Buildkite builds or jobs fail
+description: Create Incident.io incidents when Buildkite jobs fail
 author: https://github.com/buildkite-plugins
 requirements:
   - bash
